@@ -1,0 +1,124 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bastocos — Album</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ====== NAVBAR ====== -->
+  <nav class="navbar" aria-label="Navigation principale">
+    <div class="navbar-inner">
+      <a href="index.html" class="navbar-brand">⚔ Bastocos</a>
+
+      <button class="hamburger" id="hamburger" aria-label="Menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+
+      <ul class="navbar-nav" id="nav-menu">
+        <li class="nav-item"><a href="index.html" class="nav-link">Accueil</a></li>
+
+        <li class="nav-item">
+          <span class="nav-link has-dd" tabindex="0">Dex</span>
+          <div class="dropdown">
+            <a href="cards.html"  class="dd-item">Cartes</a>
+            <a href="trashs.html" class="dd-item">Déchets</a>
+            <div class="dd-item has-sub" tabindex="0">
+              Stuff
+              <div class="submenu">
+                <a href="weapons.html" class="sub-item">Armes</a>
+                <a href="armors.html"  class="sub-item">Armures</a>
+              </div>
+            </div>
+          </div>
+        </li>
+
+        <li class="nav-item"><a href="album.html"     class="nav-link">Album</a></li>
+        <li class="nav-item"><a href="tutoriels.html" class="nav-link">Tutoriels</a></li>
+        <li class="nav-item"><a href="credit.html"    class="nav-link">Crédits</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ====== MAIN ====== -->
+  <main class="main">
+
+    <!-- Section recherche : affichée par défaut (sans ?Profile=) -->
+    <section id="section-search" class="album-wrap">
+      <h1>Album</h1>
+      <p class="intro">
+        Bienvenue sur votre espace personnel.<br />
+        Retrouvez ici vos <strong>statistiques de combat</strong>, votre
+        <strong>collection de cartes</strong> et l'historique de vos aventures
+        sur Bastocos. Entrez votre pseudo Twitch pour accéder à votre profil.
+      </p>
+
+      <label for="user-search" class="search-label">Rechercher un joueur</label>
+      <div class="search-wrap">
+        <input
+          type="text"
+          id="user-search"
+          class="search-input"
+          placeholder="Votre pseudo…"
+          autocomplete="off"
+          aria-autocomplete="list"
+          aria-controls="autocomplete-box"
+        />
+        <ul class="autocomplete-box" id="autocomplete-box" role="listbox"></ul>
+      </div>
+      <p class="search-msg" id="search-msg" role="status" aria-live="polite"></p>
+      <button class="btn-voir-page" id="btn-voir-page">Voir ma page</button>
+    </section>
+
+    <!-- Section profil : affichée quand ?Profile=<nom> est présent dans l'URL -->
+    <section id="section-profile" class="profile-wrap" hidden>
+      <!-- Contenu injecté dynamiquement par script/album/profile.js -->
+    </section>
+
+  </main>
+
+  <!-- Pré-routage : masque la section inappropriée avant le chargement des scripts
+       afin d'éviter tout flash de contenu non désiré -->
+  <script>
+    (function () {
+      var p = new URLSearchParams(window.location.search).get('Profile');
+      if (p) {
+        document.getElementById('section-search').hidden  = true;
+        document.getElementById('section-profile').hidden = false;
+      }
+    }());
+  </script>
+
+  <!-- ====== MODAL (utilisée par la section profil) ====== -->
+  <div class="modal-overlay" id="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-name">
+    <div class="modal">
+      <button class="modal-close-btn" id="modal-close" aria-label="Fermer">✕</button>
+      <img id="modal-img" class="modal-img" src="" alt="" />
+      <div id="modal-name" class="modal-name"></div>
+      <div id="modal-desc" class="modal-desc"></div>
+      <ul id="modal-stats" class="modal-stats"></ul>
+    </div>
+  </div>
+
+  <!-- ====== FOOTER ====== -->
+  <footer>
+    Application Bastocos, développé par
+    <a href="https://web.jmdev.fr" target="_blank" rel="noopener noreferrer">MythMega</a>
+  </footer>
+
+  <!-- ====== SCRIPTS ====== -->
+  <!-- Entités métier -->
+  <script src="script/entity/User.js"></script>
+  <script src="script/entity/GlobalData.js"></script>
+  <script src="script/entity/Card.js"></script>
+  <script src="script/entity/Armor.js"></script>
+  <script src="script/entity/Weapon.js"></script>
+  <script src="script/entity/Trash.js"></script>
+  <!-- Logique de la page Album -->
+  <script src="script/album/ui.js"></script>
+  <script src="script/album/profile.js"></script>
+
+</body>
+</html>
