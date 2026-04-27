@@ -1,0 +1,915 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Admin Console - Localhost API</title>
+    <style>
+        /* ===========================
+        Reset & Base
+        =========================== */
+        :root {
+            --bg: #0f1724;
+            --card: #0b1220;
+            --muted: #9aa4b2;
+            --accent: #6ee7b7;
+            --danger: #ff6b6b;
+            --glass: rgba(255,255,255,0.03);
+            --glass-2: rgba(255,255,255,0.02);
+            --card-radius: 12px;
+            --gap: 16px;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+            color-scheme: dark;
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html, body {
+            height: 100%
+        }
+
+        body {
+            margin: 0;
+            background: linear-gradient(180deg,#071021 0%, #071827 60%);
+            color: #e6eef6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            padding-bottom: 140px; /* espace pour le footer fixe */
+        }
+
+        /* ===========================
+        Layout
+        =========================== */
+        .container {
+            max-width: 1200px;
+            margin: 28px auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr 420px;
+            gap: var(--gap);
+            align-items: start;
+        }
+
+        /* Responsive: une colonne sur petits écrans */
+        @media (max-width:980px) {
+            .container {
+                grid-template-columns: 1fr
+            }
+        }
+
+        /* ===========================
+        Header
+        =========================== */
+        header.app-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px;
+            padding: 12px 20px;
+            background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+            border-radius: 12px;
+            box-shadow: 0 6px 18px rgba(2,6,23,0.6);
+            margin-left: auto;
+            margin-right: auto;
+            max-width: 1200px;
+        }
+
+        header .title {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .logo {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            background: linear-gradient(135deg,var(--accent),#60a5fa);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #04202a;
+            box-shadow: 0 6px 18px rgba(6,12,20,0.6);
+        }
+
+        header h1 {
+            font-size: 1.05rem;
+            margin: 0
+        }
+
+        header p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 0.9rem
+        }
+
+        /* ===========================
+        Cards
+        =========================== */
+        .card {
+            background: linear-gradient(180deg,var(--card), rgba(255,255,255,0.01));
+            border-radius: var(--card-radius);
+            padding: 16px;
+            box-shadow: 0 8px 30px rgba(2,6,23,0.6);
+            border: 1px solid rgba(255,255,255,0.03);
+        }
+
+            .card h2 {
+                margin: 0 0 8px 0;
+                font-size: 1rem
+            }
+
+            .card .sub {
+                color: var(--muted);
+                font-size: 0.9rem;
+                margin-bottom: 12px
+            }
+
+        /* ===========================
+        Controls & Buttons
+        =========================== */
+        .controls {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap
+        }
+
+        button {
+            background: linear-gradient(180deg,#0ea5a3,#0284c7);
+            color: #04202a;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            box-shadow: 0 6px 14px rgba(2,6,23,0.5);
+        }
+
+            button.ghost {
+                background: transparent;
+                color: var(--accent);
+                border: 1px solid rgba(255,255,255,0.04);
+                box-shadow: none;
+                font-weight: 600;
+            }
+
+            button.danger {
+                background: linear-gradient(180deg,var(--danger),#ff4b4b);
+                color: #fff;
+            }
+
+            button.small {
+                padding: 6px 8px;
+                font-size: 0.9rem;
+                border-radius: 6px
+            }
+
+            button[disabled] {
+                opacity: 0.45;
+                cursor: not-allowed
+            }
+
+        /* ===========================
+        Tables
+        =========================== */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem
+        }
+
+        th, td {
+            padding: 10px 8px;
+            text-align: left;
+            border-bottom: 1px dashed rgba(255,255,255,0.03)
+        }
+
+        th {
+            color: var(--muted);
+            font-size: 0.85rem
+        }
+
+        tr.empty td {
+            color: var(--muted);
+            text-align: center;
+            padding: 18px 8px
+        }
+
+        /* ===========================
+        Right column layout
+        =========================== */
+        .right-column {
+            display: flex;
+            flex-direction: column;
+            gap: var(--gap)
+        }
+
+        .left-column {
+            display: flex;
+            flex-direction: column;
+            gap: var(--gap)
+        }
+
+        /* ===========================
+        Match current highlight
+        =========================== */
+        .match-current {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 12px;
+            border-radius: 10px;
+            background: linear-gradient(90deg, rgba(110,231,183,0.04), rgba(96,165,250,0.02));
+            border: 1px solid rgba(110,231,183,0.06);
+        }
+
+        .match-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center
+        }
+
+        .match-label {
+            color: var(--muted);
+            font-size: 0.9rem
+        }
+
+        .match-value {
+            font-weight: 700;
+            color: #e6f9f0
+        }
+
+        /* ===========================
+        Footer fixed (retours de l'application)
+        =========================== */
+        footer.app-footer {
+            position: fixed;
+            left: 16px;
+            right: 16px;
+            bottom: 16px;
+            background: linear-gradient(180deg, rgba(2,6,23,0.9), rgba(2,6,23,0.95));
+            border-radius: 12px;
+            padding: 12px;
+            border: 1px solid rgba(255,255,255,0.03);
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            z-index: 999;
+            box-shadow: 0 12px 40px rgba(2,6,23,0.7);
+        }
+
+        footer .footer-left {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 6px
+        }
+
+        footer label {
+            font-size: 0.85rem;
+            color: var(--muted)
+        }
+
+        textarea#app-log {
+            width: 100%;
+            height: 64px;
+            background: var(--glass);
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.02);
+            color: #dff7ee;
+            padding: 8px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            resize: none;
+        }
+
+        /* small helpers */
+        .right-top {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center
+        }
+
+        .muted {
+            color: var(--muted)
+        }
+
+        .spacer {
+            height: 8px
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="app-header" role="banner">
+        <div class="title">
+            <div class="logo">ADM</div>
+            <div>
+                <h1>Admin Console</h1>
+                <p>Interface locale pour interagir avec l'API sur <strong>localhost:5042</strong></p>
+            </div>
+        </div>
+        <div class="right-top">
+            <div class="muted">État: <span id="server-status">inconnu</span></div>
+        </div>
+    </header>
+
+    <!-- Main container -->
+    <main class="container" role="main">
+        <!-- Left column: principaux modules -->
+        <section class="left-column">
+            <!-- Export UserData -->
+            <div class="card" id="export-card">
+                <h2>Export UserData</h2>
+                <div class="sub">Exporte les données utilisateurs depuis l'API.</div>
+                <div class="controls">
+                    <button id="btn-export">Exporter UserData</button>
+                </div>
+                <div class="spacer"></div>
+                <div class="muted">Dernière réponse:</div>
+                <pre id="export-result" style="white-space:pre-wrap;color:var(--muted);margin:0;padding:8px;background:var(--glass-2);border-radius:8px;"></pre>
+            </div>
+
+            <!-- Match Queue -->
+            <div class="card" id="queue-card">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                    <h2>Match Queue</h2>
+                    <div>
+                        <button id="btn-refresh-queue" class="small ghost">Refresh</button>
+                    </div>
+                </div>
+                <div class="sub">Liste des demandes de match en attente.</div>
+
+                <table id="queue-table" aria-describedby="queue-card">
+                    <thead>
+                        <tr><th>#</th><th>Attaquant</th><th>Défenseur</th><th>Heure</th><th>Action</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr class="empty"><td colspan="5">Aucun élément</td></tr>
+                    </tbody>
+                </table>
+
+                <div style="display:flex;justify-content:flex-end;margin-top:12px;gap:8px">
+                    <button id="btn-clear-queue" class="danger small">Clear Queue</button>
+                </div>
+            </div>
+
+            <!-- Match Actuel -->
+            <div class="card" id="current-card">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                    <h2>Match Actuel</h2>
+                    <div><button id="btn-refresh-current" class="small ghost">Refresh</button></div>
+                </div>
+                <div class="sub">Affiche le match en cours (si présent).</div>
+
+                <div id="current-content" class="match-current" aria-live="polite">
+                    <!-- Contenu dynamique -->
+                    <div id="no-match" class="muted">Chargement...</div>
+                </div>
+
+                <div style="display:flex;align-items:center;gap:12px;margin-top:12px">
+                    <label style="display:flex;align-items:center;gap:8px">
+                        <input type="checkbox" id="chk-giveitems" /> <span class="muted">Giveitems</span>
+                    </label>
+                    <div style="flex:1"></div>
+                    <button id="btn-cancel-match" class="danger">Cancel Match</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Right column: utilitaires et utilisateurs actifs -->
+        <aside class="right-column">
+            <!-- Actions globales -->
+            <div class="card" id="global-actions-card">
+                <h2>Actions globales</h2>
+                <div class="sub">Déploiement et rafraîchissement de la page.</div>
+                <div class="controls">
+                    <button id="btn-commit">Mettre à jour le site distant</button>
+                    <button id="btn-full-refresh" class="ghost">Full Refresh</button>
+                </div>
+            </div>
+
+            <!-- Active Users -->
+            <div class="card" id="active-card">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                    <h2>Active Users</h2>
+                    <div>
+                        <button id="btn-refresh-active" class="small ghost">Refresh</button>
+                    </div>
+                </div>
+                <div class="sub">Utilisateurs actifs et temps restant avant inactivité.</div>
+
+                <table id="active-table" aria-describedby="active-card">
+                    <thead><tr><th>Pseudo</th><th>Temps restant</th><th>Action</th></tr></thead>
+                    <tbody><tr class="empty"><td colspan="3">Aucun utilisateur actif</td></tr></tbody>
+                </table>
+            </div>
+
+            <!-- Data Json Refresh -->
+            <div class="card" id="refresh-card">
+                <h2>Data Json Refresh</h2>
+                <div class="sub">Forcer le rafraîchissement des données d'environnement.</div>
+                <div style="display:flex;gap:8px;justify-content:flex-end">
+                    <button id="btn-refresh-env" class="small">Refresh Env Datas</button>
+                </div>
+            </div>
+        </aside>
+    </main>
+
+    <!-- Footer: retours de l'application (toujours affiché) -->
+    <footer class="app-footer" role="status" aria-live="polite">
+        <div class="footer-left">
+            <label for="app-log">Retours de l'application</label>
+            <textarea id="app-log" readonly>Prêt.</textarea>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+            <div class="muted">Dernière action</div>
+            <div id="last-action" style="font-weight:700;color:var(--accent)">Aucune</div>
+        </div>
+    </footer>
+
+    <script>
+        /* ============================================================
+           Classes JS pour représenter les types d'objets reçus/envoyés
+           ============================================================ */
+
+        /**
+         * Classe représentant un utilisateur actif tel que renvoyé par l'API.
+         * Propriétés attendues: DateInactive (ISO string), Id (number), Name (string)
+         */
+        class ActiveUser {
+            constructor({ DateInactive, Id, Name }) {
+                this.DateInactive = DateInactive ? new Date(DateInactive) : null;
+                this.Id = Id;
+                this.Name = Name;
+            }
+            // Retourne le temps restant en millisecondes
+            timeRemainingMs() {
+                if (!this.DateInactive) return 0;
+                return this.DateInactive - new Date();
+            }
+            // Format mm:ss
+            timeRemainingFormatted() {
+                const ms = Math.max(0, this.timeRemainingMs());
+                const totalSec = Math.floor(ms / 1000);
+                const mm = String(Math.floor(totalSec / 60)).padStart(2, '0');
+                const ss = String(totalSec % 60).padStart(2, '0');
+                return `${mm}:${ss}`;
+            }
+            // Indique si la date est atteinte
+            isExpired() { return this.timeRemainingMs() <= 0; }
+        }
+
+        /**
+         * Classe représentant un élément de la file de match.
+         * Propriétés attendues: UsernameA, UsernameB, RequestTime (ISO), MatchType
+         */
+        class MatchQueueItem {
+            constructor({ UsernameA, UsernameB, RequestTime, MatchType }) {
+                this.UsernameA = UsernameA;
+                this.UsernameB = UsernameB;
+                this.RequestTime = RequestTime ? new Date(RequestTime) : new Date();
+                this.MatchType = MatchType;
+            }
+            // Format heure:minute:seconde
+            requestTimeFormatted() {
+                const d = this.RequestTime;
+                const hh = String(d.getHours()).padStart(2, '0');
+                const mm = String(d.getMinutes()).padStart(2, '0');
+                const ss = String(d.getSeconds()).padStart(2, '0');
+                return `${hh}:${mm}:${ss}`;
+            }
+            // Retourne l'objet brut pour renvoyer au serveur (même structure)
+            toPayload() {
+                return {
+                    UsernameA: this.UsernameA,
+                    UsernameB: this.UsernameB,
+                    RequestTime: this.RequestTime.toISOString(),
+                    MatchType: this.MatchType
+                };
+            }
+        }
+
+        /**
+         * Classe représentant le match courant.
+         * Structure libre: on tente de normaliser les champs usuels.
+         */
+        class CurrentMatch {
+            constructor(obj) {
+                // obj peut être null ou {}
+                this.raw = obj || null;
+                this.UsernameA = obj?.UsernameA ?? obj?.Attacker ?? null;
+                this.UsernameB = obj?.UsernameB ?? obj?.Defender ?? null;
+                this.HPA = obj?.HPA ?? obj?.HP_A ?? obj?.HP_Attacker ?? null;
+                this.HPB = obj?.HPB ?? obj?.HP_B ?? obj?.HP_Defender ?? null;
+                this.Statut = obj?.Statut ?? obj?.Status ?? obj?.State ?? null;
+            }
+            isEmpty() { return !this.raw || Object.keys(this.raw).length === 0; }
+        }
+
+        /* ============================================================
+           Utilitaires généraux
+           ============================================================ */
+
+        // Sélecteurs rapides
+        const $ = sel => document.querySelector(sel);
+        const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+        // Zone de log (footer)
+        const appLog = $('#app-log');
+        const lastAction = $('#last-action');
+        function logApp(message) {
+            // Ajoute un timestamp et conserve les dernières lignes
+            const ts = new Date().toLocaleTimeString();
+            const newLine = `[${ts}] ${message}`;
+            const prev = appLog.value ? appLog.value + "\n" : "";
+            const lines = (prev + newLine).split("\n").slice(-200); // garder 200 lignes max
+            appLog.value = lines.join("\n");
+            appLog.scrollTop = appLog.scrollHeight;
+            lastAction.textContent = message;
+        }
+
+        // Fonction utilitaire pour faire des requêtes fetch avec gestion du footer
+        async function apiFetch(url, options = {}) {
+            // Indiquer qu'une requête est envoyée
+            logApp("requête envoyée -> " + url);
+            // Afficher état serveur
+            $('#server-status').textContent = 'en cours';
+            try {
+                const res = await fetch(url, options);
+                // Tenter de lire le texte brut (certains endpoints renvoient string)
+                const text = await res.text();
+                // Essayer de parser JSON si possible
+                let data = null;
+                try { data = text ? JSON.parse(text) : null; } catch (e) { data = text; }
+                logApp(`réponse reçue (${res.status}) : ${url}`);
+                $('#server-status').textContent = 'ok';
+                return { ok: res.ok, status: res.status, data, rawText: text };
+            } catch (err) {
+                logApp(`erreur réseau: ${err.message}`);
+                $('#server-status').textContent = 'erreur';
+                return { ok: false, status: 0, error: err };
+            }
+        }
+
+        /* ============================================================
+           Module: Export UserData
+           ============================================================ */
+        const btnExport = $('#btn-export');
+        const exportResult = $('#export-result');
+
+        btnExport.addEventListener('click', async () => {
+            exportResult.textContent = 'Envoi de la requête...';
+            const r = await apiFetch('http://localhost:5042/export/userdata', { method: 'GET' });
+            if (r.ok) {
+                // L'API renvoie une string simple
+                exportResult.textContent = typeof r.data === 'string' ? r.data : (r.rawText || JSON.stringify(r.data));
+            } else {
+                exportResult.textContent = `Erreur (${r.status || 'network'})`;
+            }
+        });
+
+        /* ============================================================
+           Module: Active Users
+           ============================================================ */
+        const btnRefreshActive = $('#btn-refresh-active');
+        const activeTableBody = $('#active-table tbody');
+
+        // Stockage local des timers pour mettre à jour les compteurs
+        let activeUsers = []; // tableau d'ActiveUser
+        let activeInterval = null;
+
+        // Fonction pour rafraîchir l'affichage du tableau
+        function renderActiveUsers() {
+            // Vider le tbody
+            activeTableBody.innerHTML = '';
+            if (!activeUsers.length) {
+                activeTableBody.innerHTML = '<tr class="empty"><td colspan="3">Aucun utilisateur actif</td></tr>';
+                return;
+            }
+            activeUsers.forEach(user => {
+                const tr = document.createElement('tr');
+                tr.dataset.userId = user.Id;
+                // Pseudo
+                const tdName = document.createElement('td');
+                tdName.textContent = user.Name;
+                // Temps restant
+                const tdTime = document.createElement('td');
+                tdTime.className = 'time-remaining';
+                tdTime.textContent = user.timeRemainingFormatted();
+                // Action
+                const tdAction = document.createElement('td');
+                const btn = document.createElement('button');
+                btn.className = 'small';
+                btn.textContent = 'Set Inactive';
+                btn.disabled = user.isExpired();
+                btn.addEventListener('click', async () => {
+                    // Envoi POST à /user/setinactive avec { "Id": 123465 }
+                    const payload = { Id: user.Id };
+                    logApp(`Envoi setinactive pour Id=${user.Id}`);
+                    const r = await apiFetch('http://localhost:5042/admin/setinactive', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (r.ok) {
+                        logApp(`setinactive OK pour Id=${user.Id}`);
+                        // Rafraîchir la liste
+                        await fetchActiveUsers();
+                    } else {
+                        logApp(`setinactive ERREUR pour Id=${user.Id}`);
+                    }
+                });
+                tdAction.appendChild(btn);
+
+                tr.appendChild(tdName);
+                tr.appendChild(tdTime);
+                tr.appendChild(tdAction);
+                activeTableBody.appendChild(tr);
+            });
+        }
+
+        // Mettre à jour les compteurs chaque seconde
+        function startActiveTimer() {
+            if (activeInterval) clearInterval(activeInterval);
+            activeInterval = setInterval(() => {
+                let changed = false;
+                activeUsers.forEach(u => {
+                    const tr = activeTableBody.querySelector(`tr[data-user-id="${u.Id}"]`);
+                    if (tr) {
+                        const tdTime = tr.querySelector('.time-remaining');
+                        const btn = tr.querySelector('button');
+                        const prev = tdTime.textContent;
+                        const now = u.timeRemainingFormatted();
+                        if (prev !== now) { tdTime.textContent = now; changed = true; }
+                        if (u.isExpired() && !btn.disabled) { btn.disabled = true; changed = true; }
+                    }
+                });
+                // si plus d'utilisateurs actifs, on arrête l'interval
+                if (activeUsers.length === 0 && activeInterval) {
+                    clearInterval(activeInterval);
+                    activeInterval = null;
+                }
+            }, 1000);
+        }
+
+        // Récupère la liste depuis l'API
+        async function fetchActiveUsers() {
+            const r = await apiFetch('http://localhost:5042/user/getlistuseractive', { method: 'GET' });
+            if (r.ok) {
+                // On s'attend à un tableau d'objets
+                const arr = Array.isArray(r.data) ? r.data : (Array.isArray(r.rawText) ? r.rawText : r.data || []);
+                // Normaliser en ActiveUser
+                activeUsers = (arr || []).map(o => new ActiveUser(o));
+                renderActiveUsers();
+                startActiveTimer();
+            } else {
+                logApp('Impossible de récupérer la liste des utilisateurs actifs');
+            }
+        }
+
+        btnRefreshActive.addEventListener('click', fetchActiveUsers);
+
+        /* ============================================================
+           Module: Match Queue
+           ============================================================ */
+        const btnRefreshQueue = $('#btn-refresh-queue');
+        const queueTableBody = $('#queue-table tbody');
+        const btnClearQueue = $('#btn-clear-queue');
+
+        let queueItems = []; // tableau de MatchQueueItem
+
+        function renderQueue() {
+            queueTableBody.innerHTML = '';
+            if (!queueItems.length) {
+                queueTableBody.innerHTML = '<tr class="empty"><td colspan="5">Aucun élément</td></tr>';
+                return;
+            }
+            queueItems.forEach((item, idx) => {
+                const tr = document.createElement('tr');
+                // Index
+                const tdIdx = document.createElement('td'); tdIdx.textContent = String(idx + 1);
+                // UsernameA
+                const tdA = document.createElement('td'); tdA.textContent = item.UsernameA;
+                // UsernameB
+                const tdB = document.createElement('td'); tdB.textContent = item.UsernameB;
+                // Time
+                const tdTime = document.createElement('td'); tdTime.textContent = item.requestTimeFormatted();
+                // Action
+                const tdAction = document.createElement('td');
+                const btn = document.createElement('button');
+                btn.className = 'small ghost';
+                btn.textContent = 'Supprimer';
+                btn.addEventListener('click', async () => {
+                    // Envoi POST à /match/removequeueitem avec l'objet exact
+                    const payload = item.toPayload();
+                    logApp('Suppression queue item: ' + JSON.stringify(payload));
+                    const r = await apiFetch('http://localhost:5042/match/removequeueitem', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (r.ok) {
+                        logApp('Suppression OK, rafraîchissement de la queue');
+                        // Simuler un refresh
+                        await fetchQueue();
+                    } else {
+                        logApp('Erreur suppression queue item');
+                    }
+                });
+                tdAction.appendChild(btn);
+
+                tr.appendChild(tdIdx);
+                tr.appendChild(tdA);
+                tr.appendChild(tdB);
+                tr.appendChild(tdTime);
+                tr.appendChild(tdAction);
+                queueTableBody.appendChild(tr);
+            });
+        }
+
+        async function fetchQueue() {
+            const r = await apiFetch('http://localhost:5042/match/getqueuepending', { method: 'GET' });
+            if (r.ok) {
+                const arr = Array.isArray(r.data) ? r.data : (Array.isArray(r.rawText) ? r.rawText : r.data || []);
+                queueItems = (arr || []).map(o => new MatchQueueItem(o));
+                renderQueue();
+            } else {
+                logApp('Impossible de récupérer la queue de match');
+            }
+        }
+
+        btnRefreshQueue.addEventListener('click', fetchQueue);
+
+        btnClearQueue.addEventListener('click', async () => {
+            if (!confirm('Confirmer la suppression de toute la queue ?')) return;
+            const r = await apiFetch('http://localhost:5042/admin/clearqueuepending', { method: 'POST' });
+            if (r.ok) {
+                logApp('Queue vidée avec succès');
+                await fetchQueue();
+            } else {
+                logApp('Erreur lors du clear queue');
+            }
+        });
+
+        /* ============================================================
+           Module: Match Actuel
+           ============================================================ */
+        const btnRefreshCurrent = $('#btn-refresh-current');
+        const currentContent = $('#current-content');
+        const btnCancelMatch = $('#btn-cancel-match');
+        const chkGiveItems = $('#chk-giveitems');
+
+        let currentMatch = null; // instance de CurrentMatch
+
+        function renderCurrentMatch() {
+            currentContent.innerHTML = '';
+            if (!currentMatch || currentMatch.isEmpty()) {
+                const no = document.createElement('div');
+                no.id = 'no-match';
+                no.className = 'muted';
+                no.textContent = 'Pas de match en cours';
+                currentContent.appendChild(no);
+                return;
+            }
+            // Attaquant
+            const rowA = document.createElement('div');
+            rowA.className = 'match-row';
+            const labelA = document.createElement('div'); labelA.className = 'match-label'; labelA.textContent = 'Attaquant';
+            const valueA = document.createElement('div'); valueA.className = 'match-value';
+            valueA.textContent = `${currentMatch.UsernameA ?? 'N/A'} (${currentMatch.HPA ?? 'N/A'} PV)`;
+            rowA.appendChild(labelA); rowA.appendChild(valueA);
+
+            // Défenseur
+            const rowB = document.createElement('div');
+            rowB.className = 'match-row';
+            const labelB = document.createElement('div'); labelB.className = 'match-label'; labelB.textContent = 'Défenseur';
+            const valueB = document.createElement('div'); valueB.className = 'match-value';
+            valueB.textContent = `${currentMatch.UsernameB ?? 'N/A'} (${currentMatch.HPB ?? 'N/A'} PV)`;
+            rowB.appendChild(labelB); rowB.appendChild(valueB);
+
+            // Statut
+            const rowS = document.createElement('div');
+            rowS.className = 'match-row';
+            const labelS = document.createElement('div'); labelS.className = 'match-label'; labelS.textContent = 'État du match';
+            const valueS = document.createElement('div'); valueS.className = 'match-value';
+            valueS.textContent = `${currentMatch.Statut ?? 'N/A'}`;
+            rowS.appendChild(labelS); rowS.appendChild(valueS);
+
+            currentContent.appendChild(rowA);
+            currentContent.appendChild(rowB);
+            currentContent.appendChild(rowS);
+        }
+
+        async function fetchCurrentMatch() {
+            const r = await apiFetch('http://localhost:5042/match/getcurrentmatch', { method: 'GET' });
+            if (r.ok) {
+                // r.data peut être null, {} ou un objet
+                currentMatch = new CurrentMatch(r.data);
+                renderCurrentMatch();
+            } else {
+                logApp('Impossible de récupérer le match courant');
+            }
+        }
+
+        btnRefreshCurrent.addEventListener('click', fetchCurrentMatch);
+
+        btnCancelMatch.addEventListener('click', async () => {
+            const give = chkGiveItems.checked === true;
+            const payload = { GiveItems: !!give };
+            if (!confirm(`Confirmer l'arrêt du match (GiveItems=${payload.GiveItems}) ?`)) return;
+            const r = await apiFetch('http://localhost:5042/admin/stopmatch', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (r.ok) {
+                logApp('Match arrêté avec succès');
+                // Rafraîchir l'affichage
+                await fetchCurrentMatch();
+            } else {
+                logApp('Erreur lors de l\'arrêt du match');
+            }
+        });
+
+        /* ============================================================
+           Module: Actions globales
+           ============================================================ */
+        const btnCommit = $('#btn-commit');
+        const btnFullRefresh = $('#btn-full-refresh');
+
+        btnCommit.addEventListener('click', async () => {
+            btnCommit.disabled = true;
+            const r = await apiFetch('http://localhost:5042/export/commit', { method: 'POST' });
+            if (r.ok) {
+                logApp('Site distant mis à jour avec succès');
+            } else {
+                logApp('Erreur lors de la mise à jour du site distant');
+            }
+            btnCommit.disabled = false;
+        });
+
+        btnFullRefresh.addEventListener('click', async () => {
+            btnFullRefresh.disabled = true;
+            logApp('Full Refresh en cours...');
+            await Promise.all([fetchActiveUsers(), fetchQueue(), fetchCurrentMatch()]);
+            logApp('Full Refresh terminé');
+            btnFullRefresh.disabled = false;
+        });
+
+        /* ============================================================
+           Module: Data Json Refresh
+           ============================================================ */
+        const btnRefreshEnv = $('#btn-refresh-env');
+        btnRefreshEnv.addEventListener('click', async () => {
+            const r = await apiFetch('http://localhost:5042/admin/refreshenvdatas', { method: 'POST' });
+            if (r.ok) {
+                logApp('Refresh env datas OK');
+            } else {
+                logApp('Erreur refresh env datas');
+            }
+        });
+
+        /* ============================================================
+           Initialisation & ping serveur
+           ============================================================ */
+        async function pingServer() {
+            // Petit ping pour vérifier si le serveur répond (on utilise /match/getcurrentmatch comme ping)
+            const r = await apiFetch('http://localhost:5042/match/getcurrentmatch', { method: 'GET' });
+            if (r.ok) $('#server-status').textContent = 'ok';
+            else $('#server-status').textContent = 'inaccessible';
+        }
+
+        // Initial load
+        (function init() {
+            // Attacher handlers déjà fait; on lance un ping et un fetch initial pour chaque module
+            pingServer();
+            // Charger les données initiales (non bloquant)
+            fetchActiveUsers();
+            fetchQueue();
+            fetchCurrentMatch();
+            // Marquer la page prête
+            logApp('Interface prête');
+        })();
+
+        /* ============================================================
+           Notes de maintenance (commentaires pour faciliter la lecture)
+           - Chaque module a:
+             * un bouton "refresh" qui appelle l'endpoint GET correspondant
+             * des handlers pour les actions POST (setinactive, removequeueitem, clearqueuepending, stopmatch)
+           - Les classes JS (ActiveUser, MatchQueueItem, CurrentMatch) servent à:
+             * normaliser les données reçues
+             * fournir des méthodes utilitaires (formatage, payload)
+           - Le footer affiche l'état des requêtes et conserve l'historique local.
+           - Les timers pour les temps restants sont gérés par setInterval et recalculent chaque seconde.
+           - Pour ajouter un nouveau module: créer une card HTML, ajouter les boutons, puis écrire
+             une fonction fetchX() qui utilise apiFetch(url) et met à jour le DOM.
+           ============================================================ */
+    </script>
+</body>
+</html>
